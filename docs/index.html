@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neural Operators for Thermal Design</title>
+<meta name="description" content="FNO vs U-Net vs DeepONet surrogates for 2D heat conduction, and an honest test of surrogate-based layout optimisation, verified against a finite-volume solver.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,600;8..60,700;8..60,800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --teal: #154f58;
+    --teal-dark: #0f3a41;
+    --teal-soft: #e3edf0;
+    --pill: #dde7ee;
+    --pill-text: #2b4a5a;
+    --bg: #f5f7f9;
+    --card: #ffffff;
+    --text: #1d2a30;
+    --muted: #5a6b73;
+    --line: #dfe5e9;
+    --accent: #d9822b;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 16px/1.65 Inter, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  a { color: var(--teal); }
+  header.top { background: var(--teal); color: #fff; }
+  .top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px;
+               padding-top: 14px; padding-bottom: 14px; flex-wrap: wrap; }
+  .top .brand { font-weight: 600; letter-spacing: .02em; }
+  .top nav a { color: #d6e7ea; text-decoration: none; margin-left: 20px; font-size: 15px; }
+  .top nav a:hover { color: #fff; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding-left: 24px; padding-right: 24px; }
+  .hero { padding-top: 56px; padding-bottom: 28px; }
+  .pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+  .pill { background: var(--pill); color: var(--pill-text); border-radius: 999px; padding: 5px 14px;
+          font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+  h1, h2, h3 { font-family: "Source Serif 4", Georgia, serif; color: var(--teal-dark); }
+  h1 { font-size: clamp(34px, 5vw, 54px); line-height: 1.08; font-weight: 800; margin: 0 0 18px; max-width: 900px; }
+  h2 { font-size: clamp(26px, 3.2vw, 34px); font-weight: 700; margin: 0 0 12px; }
+  h3 { font-size: 20px; font-weight: 700; margin: 0 0 6px; }
+  .lead { font-size: 19px; color: var(--muted); max-width: 820px; margin: 0; }
+  .btns { margin-top: 26px; display: flex; gap: 12px; flex-wrap: wrap; }
+  .btn { display: inline-block; padding: 10px 18px; border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 15px; }
+  .btn.primary { background: var(--teal); color: #fff; }
+  .btn.ghost { border: 1.5px solid var(--teal); color: var(--teal); }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 36px 0 8px; }
+  .stat { background: var(--card); border-radius: 16px; padding: 18px 20px; box-shadow: 0 1px 3px rgba(20,40,50,.08); }
+  .stat .num { font-family: "Source Serif 4", Georgia, serif; font-size: 34px; font-weight: 800; color: var(--teal); line-height: 1.1; }
+  .stat .lbl { font-size: 14px; color: var(--muted); margin-top: 6px; }
+  section { padding: 44px 0 12px; }
+  .sec-pill { margin-bottom: 10px; }
+  .card { background: var(--card); border-radius: 18px; padding: 22px; box-shadow: 0 1px 3px rgba(20,40,50,.08);
+          margin: 18px 0; }
+  .card img { width: 100%; height: auto; display: block; border-radius: 8px; }
+  .card .cap { font-size: 14px; color: var(--muted); margin-top: 10px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .findings { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 18px; }
+  .finding { background: var(--card); border-radius: 16px; padding: 18px 20px; border-left: 4px solid var(--teal);
+             box-shadow: 0 1px 3px rgba(20,40,50,.08); }
+  .finding.warn { border-left-color: var(--accent); }
+  .finding p { margin: 0; color: var(--text); font-size: 15px; }
+  .table-wrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 14.5px; min-width: 620px; }
+  th, td { padding: 9px 12px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  thead th { color: var(--teal-dark); font-weight: 600; background: var(--teal-soft); }
+  td.best { font-weight: 700; color: var(--teal); }
+  ul.plain { padding-left: 20px; margin: 8px 0; }
+  ul.plain li { margin: 6px 0; }
+  code { background: var(--teal-soft); padding: 1px 6px; border-radius: 5px; font-size: 14px; }
+  footer { background: var(--teal); color: #cfe2e5; margin-top: 56px; padding: 26px 0; font-size: 14px; }
+  footer a { color: #fff; }
+  @media (max-width: 860px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .grid2, .findings { grid-template-columns: 1fr; }
+    .top nav a { margin-left: 0; margin-right: 16px; }
+  }
+  @media (max-width: 480px) {
+    .wrap { padding-left: 16px; padding-right: 16px; }
+    .stats { grid-template-columns: 1fr; }
+    .card { padding: 14px; }
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="brand">Engineering Simulation &amp; Optimisation Portfolio</div>
+    <nav>
+      <a href="#findings">Findings</a>
+      <a href="#solver">Solver</a>
+      <a href="#benchmark">Benchmark</a>
+      <a href="#optimisation">Optimisation</a>
+      <a href="https://github.com/dgh19981102-max/fno-thermal-design">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+<div class="wrap hero">
+  <div class="pills">
+    <span class="pill">Neural operators</span><span class="pill">PyTorch</span><span class="pill">Finite volumes</span>
+    <span class="pill">Adjoint optimisation</span><span class="pill">Physics-informed ML</span>
+  </div>
+  <h1>Neural-Operator Surrogates for Thermal Design: What Works and What Doesn't</h1>
+  <p class="lead">This project compares a Fourier Neural Operator, a U-Net and DeepONet on 2D steady heat conduction in a heat-spreader plate. The surrogates are then used to optimise where to place high-conductivity material. Every design they propose is re-checked with a verified finite-volume solver, and every result is reported as measured.</p>
+  <div class="btns">
+    <a class="btn primary" href="https://github.com/dgh19981102-max/fno-thermal-design">View code on GitHub</a>
+    <a class="btn ghost" href="https://github.com/dgh19981102-max/fno-thermal-design/blob/main/results/summary/RESULTS.md">Full results tables</a>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="num">6.1 %</div><div class="lbl">U-Net test error at the training resolution (FNO: 16.1 %)</div></div>
+    <div class="stat"><div class="num">15.9 %</div><div class="lbl">FNO error zero-shot at 128&times;128, unchanged (U-Net rises to 23.5 %)</div></div>
+    <div class="stat"><div class="num">&minus;21 %</div><div class="lbl">FNO error from adding a physics-residual loss (1200 samples, 3 seeds)</div></div>
+    <div class="stat"><div class="num">1.9&ndash;2.6&times;</div><div class="lbl">Higher true peak temperature of surrogate-optimised designs than of adjoint-optimised ones</div></div>
+  </div>
+</div>
+
+<section id="findings">
+  <div class="wrap">
+    <div class="pills sec-pill"><span class="pill">Key findings</span></div>
+    <h2>What the experiments show</h2>
+    <p class="lead">The benchmark uses 5 random seeds and the ablations use 3. Models were trained on a Colab Tesla T4, and all numbers are mean ± std across seeds.</p>
+    <div class="findings">
+      <div class="finding"><h3>U-Net is the most accurate at a fixed grid</h3><p>Its locality bias suits the sharp two-phase material interfaces. It reaches 6.1 % relative L2 error, against 16.1 % (FNO) and 15.4 % (DeepONet).</p></div>
+      <div class="finding"><h3>FNO is resolution-invariant</h3><p>On paired problems its error is 15.7 % at 64&times;64 and 15.9 % at 128&times;128. The U-Net goes from 5.7 % to 23.5 %, and its peak-temperature error rises to 55 %.</p></div>
+      <div class="finding"><h3>Physics loss helps at every data size</h3><p>The residual of the <em>same</em> discrete operator that generated the labels lowers the FNO error from 39 → 34 %, 29 → 23 % and 16 → 13 % for 100, 300 and 1200 training samples.</p></div>
+      <div class="finding"><h3>The FNO is data-limited, not over-sized</h3><p>A smaller FNO did worse. Exact mirror-symmetry augmentation (→ 12.6 %) and the physics loss (→ 12.9 %) both helped. These controls were declared before running.</p></div>
+      <div class="finding warn"><h3>Surrogate optimisation gets exploited</h3><p>At the designs the optimiser found, the FNO under-predicts the peak temperature by 27&ndash;52 %. Those designs are 1.9&ndash;2.6&times; hotter than the adjoint solver's designs.</p></div>
+      <div class="finding warn"><h3>Refinement fixes the prediction, not the design</h3><p>Solving 88 visited designs and fine-tuning brings the prediction error within ±8 %. The designs remain 1.4&ndash;2.0&times; worse than the adjoint result, and the loop takes longer.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="solver">
+  <div class="wrap">
+    <div class="pills sec-pill"><span class="pill">Step 1</span><span class="pill">Ground truth</span></div>
+    <h2>A verified finite-volume solver</h2>
+    <p class="lead">The PDE is &minus;&nabla;&middot;(k&nabla;T) = f on the unit square. A heat sink (T = 0) covers the middle 25 % of the bottom edge, and the rest of the boundary is adiabatic. The solver uses cell-centred finite volumes with harmonic-mean face conductivities and a sparse LU solve.</p>
+    <div class="card">
+      <img src="figures/solver_verification.png" alt="Solver verification: second-order MMS convergence and grid convergence of the peak temperature" loading="lazy">
+      <div class="cap">(a) The manufactured solution converges at second order (observed orders 2.02, 2.00, 2.00, 2.00). (b) The peak temperature of the real problem converges at about first order because the sink edges are singular points; at 64&times;64 it carries about 1.2 % discretisation error. Discrete energy balance holds to 3&times;10<sup>&minus;13</sup>.</div>
+    </div>
+    <div class="card">
+      <img src="figures/dataset_samples.png" alt="Training and out-of-distribution samples: conductivity, heat sources and temperature" loading="lazy">
+      <div class="cap">Training inputs combine smooth and two-phase conductivity fields in [1, 20] with 1&ndash;3 Gaussian heat sources. The out-of-distribution sets use more sources, sources near the edges, and a conductivity contrast of 100.</div>
+    </div>
+  </div>
+</section>
+
+<section id="benchmark">
+  <div class="wrap">
+    <div class="pills sec-pill"><span class="pill">Step 2</span><span class="pill">Surrogate benchmark</span></div>
+    <h2>FNO vs U-Net vs DeepONet</h2>
+    <p class="lead">All three models have a similar parameter budget (1&ndash;2.4 M) and were trained for the same 15 000 steps with a relative-L2 loss. None was tuned individually.</p>
+    <div class="card table-wrap">
+      <table>
+        <thead><tr><th>Relative L2 error</th><th>In-dist.</th><th>4&ndash;6 sources</th><th>Edge sources</th><th>k contrast 100</th><th>Paired @64</th><th>Zero-shot @128</th></tr></thead>
+        <tbody>
+          <tr><td>FNO (2.37 M)</td><td>16.1 ± 0.3 %</td><td>26.1 ± 1.1 %</td><td>26.1 ± 0.6 %</td><td>45.3 ± 2.7 %</td><td>15.7 ± 0.4 %</td><td class="best">15.9 ± 0.5 %</td></tr>
+          <tr><td>U-Net (1.95 M)</td><td class="best">6.1 ± 0.5 %</td><td class="best">9.6 ± 0.5 %</td><td class="best">11.4 ± 0.9 %</td><td class="best">26.0 ± 2.4 %</td><td class="best">5.7 ± 0.5 %</td><td>23.5 ± 2.8 %</td></tr>
+          <tr><td>DeepONet (0.96 M)</td><td>15.4 ± 0.8 %</td><td>24.6 ± 1.1 %</td><td>32.3 ± 0.6 %</td><td>68.1 ± 4.9 %</td><td>15.8 ± 0.6 %</td><td>16.0 ± 0.6 %</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <img src="figures/benchmark_errors.png" alt="Bar charts of field and peak-temperature errors for the three models across six test sets" loading="lazy">
+      <div class="cap">Mean ± std over 5 seeds (log scale). Right: relative error of the peak temperature, the quantity that decides whether a component overheats.</div>
+    </div>
+    <div class="card">
+      <img src="figures/examples_superres.png" alt="Zero-shot 128x128 predictions and error maps for FNO, U-Net and DeepONet" loading="lazy">
+      <div class="cap">Zero-shot evaluation on a 128&times;128 input, with all models trained at 64&times;64. This is a single example; the averages are in the table above.</div>
+    </div>
+      <div class="card">
+        <img src="figures/physics_ablation.png" alt="Physics-loss ablation over training-set size" loading="lazy">
+        <div class="cap">Physics-residual loss vs number of labelled samples (3 seeds). A weight of 0.1 made training collapse in pilot runs, because the discrete residual amplifies high-frequency noise.</div>
+      </div>
+      <div class="card">
+        <img src="figures/fno_diagnostics.png" alt="Train/test gap of FNO variants" loading="lazy">
+        <div class="cap">Diagnostic controls declared before running. Less capacity does not help; more information (augmentation or physics) does. The weight-decay test is weak under AdamW and therefore inconclusive.</div>
+      </div>
+  </div>
+</section>
+
+<section id="optimisation">
+  <div class="wrap">
+    <div class="pills sec-pill"><span class="pill">Step 3</span><span class="pill">Design optimisation</span></div>
+    <h2>Placing 30 % high-conductivity material to minimise the peak temperature</h2>
+    <p class="lead">The design is a SIMP density with a cone filter and an exact volume constraint (implicit-function gradient), and the objective is a p-norm of T. The adjoint solver and the surrogate share the same Adam loop, the same 8 starting designs and 200 iterations. All numbers below are true peak temperatures from the solver.</p>
+    <div class="card">
+      <img src="figures/optimization_case0.png" alt="Optimised material layouts and temperature fields: solver, FNO surrogate, refined surrogate" loading="lazy">
+      <div class="cap">Case 0. The FNO predicted a peak temperature of 0.128 for its own design; the solver says 0.266.</div>
+    </div>
+    <div class="card table-wrap">
+      <table>
+        <thead><tr><th>Case</th><th>Uniform</th><th>Solver + adjoint</th><th>FNO surrogate (pred. error)</th><th>Refined FNO (pred. error)</th><th>Time solver / FNO / refined</th></tr></thead>
+        <tbody>
+          <tr><td>0</td><td>1.467</td><td class="best">0.142</td><td>0.266 (&minus;52 %)</td><td>0.204 (+4 %)</td><td>31 s / 5 s / 59 s</td></tr>
+          <tr><td>1</td><td>2.233</td><td class="best">0.355</td><td>0.678 (&minus;27 %)</td><td>0.656 (&minus;1 %)</td><td>32 s / 4 s / 58 s</td></tr>
+          <tr><td>2</td><td>2.482</td><td class="best">0.444</td><td>1.155 (&minus;50 %)</td><td>0.885 (+7.5 %)</td><td>33 s / 4 s / 58 s</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <img src="figures/optimization_history.png" alt="Optimisation history: surrogate-predicted vs true objective" loading="lazy">
+        <div class="cap">The surrogate's own objective keeps falling while the true peak temperature of its design stays well above the solver's.</div>
+      </div>
+      <div class="card">
+        <img src="figures/speed.png" alt="Inference time per sample for the solver and the surrogates" loading="lazy">
+        <div class="cap">The speed-up exists only on a GPU (FNO: 5.7&times; at batch 1, 41&times; at batch 64). On a CPU the surrogates are no faster than sparse LU at 64&times;64.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="limits">
+  <div class="wrap">
+    <div class="pills sec-pill"><span class="pill">Honest scope</span></div>
+    <h2>Limitations</h2>
+    <div class="card">
+      <ul class="plain">
+        <li>Labels are the 64&times;64 discrete solution, which has about 1 % discretisation error in the peak temperature.</li>
+        <li>There is one dataset. Seeds vary only the initialisation and batch order, and with 3&ndash;5 seeds p-values are indicative.</li>
+        <li>No per-model hyper-parameter tuning was done. A tuned FNO (more modes, augmentation and physics loss combined) was not tested.</li>
+        <li>The problem is linear, 2D and small, where direct solvers and adjoint gradients are cheap. The case for surrogates grows for nonlinear, transient or 3D problems, which were not tested here.</li>
+        <li>Timings are specific to a Colab T4 GPU and a Colab CPU.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Reproduce</h3>
+      <p style="margin:6px 0 0">Run <code>pip install -r requirements.txt</code> and <code>pytest</code> (23 tests), then <code>experiments/01</code>&ndash;<code>08</code>. Alternatively, run the whole pipeline on a free Colab GPU with <code>notebooks/colab_run_all.ipynb</code>. Raw per-seed results are in <code>results/</code>.</p>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">Built by <a href="https://github.com/dgh19981102-max">dgh19981102-max</a>, engineering simulation &amp; optimisation. Python · PyTorch · NumPy/SciPy. MIT licence.</div>
+</footer>
+</body>
+</html>

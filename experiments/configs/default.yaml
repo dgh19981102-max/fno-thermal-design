@@ -1,0 +1,64 @@
+# Full-scale configuration (sized for a free Colab T4 GPU; also runs on CPU, slowly).
+data_dir: data
+results_dir: results
+
+data:
+  n: 64
+  n_train: 1200
+  n_val: 200
+  n_test: 300
+  n_ood: 300            # per OOD variant
+  n_superres: 200       # paired 64/128 problems
+  superres_n: 128
+  seed: 0
+
+models:
+  fno:      {modes: 12, width: 32, n_layers: 4, pad_frac: 0.125}
+  unet:     {base: 32, depth: 3}
+  deeponet: {p: 128, width: 256, branch_res: 64}
+
+train:
+  steps: 15000          # optimiser steps (fixed across data sizes for fair ablation)
+  batch_size: 20
+  lr: 1.0e-3
+  weight_decay: 1.0e-5
+  eval_every: 500
+  physics_weight: 0.001 # only used by physics-informed runs
+
+benchmark:
+  models: [fno, unet, deeponet]
+  seeds: [0, 1, 2, 3, 4]
+
+ablation:
+  n_train: [100, 300, 1200]
+  physics_weight: [0.0, 0.001, 0.01]   # larger weights hurt in pilot runs (ill-conditioned residual)
+  seeds: [0, 1, 2]
+
+# Experiment 08: diagnosis of the FNO generalisation gap (added after the first full run,
+# declared before running it). Each variant changes ONE thing w.r.t. the benchmark FNO;
+# all results are reported whatever they show.
+diagnostics:
+  seeds: [0, 1, 2]
+  variants:
+    fno_small:      {model: {modes: 8, width: 24}}          # less capacity
+    fno_wd:         {train: {weight_decay: 1.0e-3}}         # 100x stronger weight decay
+    fno_flip_aug:   {train: {augment_flip: true}}           # exact mirror-symmetry augmentation
+
+optimization:
+  volume_fraction: 0.3
+  k_min: 1.0
+  k_max: 20.0
+  simp_p: 3.0
+  filter_radius: 2.0    # cells
+  pnorm: 10.0           # p-norm approximation of max(T)
+  iters: 200
+  lr: 0.1
+  n_starts: 8
+  n_cases: 3            # number of heat-source layouts to optimise
+  surrogate_seed: 0
+  refine_samples: 200   # solver samples added in the refinement round
+  refine_steps: 2000
+
+speed:
+  n_samples: 100
+  batch_sizes: [1, 16, 64]

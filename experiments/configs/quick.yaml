@@ -1,0 +1,37 @@
+# Smoke-test overrides: exercises every code path in a few minutes on a CPU.
+# Numbers produced with this config are NOT meaningful results.
+data_dir: data_quick
+results_dir: results_quick
+
+data:
+  n_train: 60
+  n_val: 20
+  n_test: 20
+  n_ood: 10
+  n_superres: 8
+
+train:
+  steps: 60
+  batch_size: 10
+  eval_every: 30
+
+benchmark:
+  seeds: [0, 1]
+
+ablation:
+  n_train: [30, 60]
+  seeds: [0]
+
+optimization:
+  iters: 10
+  n_starts: 2
+  n_cases: 1
+  refine_samples: 10
+  refine_steps: 20
+
+speed:
+  n_samples: 5
+  batch_sizes: [1, 4]
+
+diagnostics:
+  seeds: [0]
