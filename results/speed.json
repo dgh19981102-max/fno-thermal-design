@@ -1,0 +1,166 @@
+{
+ "hardware": {
+  "device": "cuda",
+  "torch": "2.11.0+cu128",
+  "python": "3.13.15",
+  "cpu": "x86_64",
+  "cpu_threads": 1,
+  "gpu": "Tesla T4"
+ },
+ "solver_s_per_sample": {
+  "64": 0.014820725999925344,
+  "128": 0.07924356200055627
+ },
+ "models": {
+  "fno": {
+   "cuda_grid64_batch1": {
+    "s_per_sample": 0.0025828489997365978,
+    "speedup_vs_solver": 5.738131033380883
+   },
+   "cuda_grid64_batch16": {
+    "s_per_sample": 0.00042632303131995286,
+    "speedup_vs_solver": 34.76407538677515
+   },
+   "cuda_grid64_batch64": {
+    "s_per_sample": 0.0003650097421825649,
+    "speedup_vs_solver": 40.603645018637735
+   },
+   "cuda_grid128_batch1": {
+    "s_per_sample": 0.0026712609997048276,
+    "speedup_vs_solver": 29.665226276770642
+   },
+   "cuda_grid128_batch16": {
+    "s_per_sample": 0.0014588606250640623,
+    "speedup_vs_solver": 54.31880238530427
+   },
+   "cuda_grid128_batch64": {
+    "s_per_sample": 0.0013924387968700103,
+    "speedup_vs_solver": 56.90990668938821
+   },
+   "cpu_grid64_batch1": {
+    "s_per_sample": 0.015326079999795184,
+    "speedup_vs_solver": 0.9670265325591023
+   },
+   "cpu_grid64_batch16": {
+    "s_per_sample": 0.021669591249974474,
+    "speedup_vs_solver": 0.6839411887818974
+   },
+   "cpu_grid64_batch64": {
+    "s_per_sample": 0.026845321343742512,
+    "speedup_vs_solver": 0.5520785469524644
+   },
+   "cpu_grid128_batch1": {
+    "s_per_sample": 0.032726407499467314,
+    "speedup_vs_solver": 2.421395076799863
+   },
+   "cpu_grid128_batch16": {
+    "s_per_sample": 0.10544951059375762,
+    "speedup_vs_solver": 0.7514834497984604
+   },
+   "cpu_grid128_batch64": {
+    "s_per_sample": 0.11466204042187655,
+    "speedup_vs_solver": 0.691105458345195
+   }
+  },
+  "unet": {
+   "cuda_grid64_batch1": {
+    "s_per_sample": 0.002619430999402539,
+    "speedup_vs_solver": 5.657994428295983
+   },
+   "cuda_grid64_batch16": {
+    "s_per_sample": 0.0006125338750280207,
+    "speedup_vs_solver": 24.195765498271196
+   },
+   "cuda_grid64_batch64": {
+    "s_per_sample": 0.0005166747499885105,
+    "speedup_vs_solver": 28.684827350775162
+   },
+   "cuda_grid128_batch1": {
+    "s_per_sample": 0.0027607205001913826,
+    "speedup_vs_solver": 28.70394232051482
+   },
+   "cuda_grid128_batch16": {
+    "s_per_sample": 0.0016383612499453193,
+    "speedup_vs_solver": 48.36757583420692
+   },
+   "cuda_grid128_batch64": {
+    "s_per_sample": 0.0015980647656164138,
+    "speedup_vs_solver": 49.587203038038346
+   },
+   "cpu_grid64_batch1": {
+    "s_per_sample": 0.02094478149956558,
+    "speedup_vs_solver": 0.7076094825927282
+   },
+   "cpu_grid64_batch16": {
+    "s_per_sample": 0.02166275209373225,
+    "speedup_vs_solver": 0.6841571161317711
+   },
+   "cpu_grid64_batch64": {
+    "s_per_sample": 0.02705752560937924,
+    "speedup_vs_solver": 0.5477487562568499
+   },
+   "cpu_grid128_batch1": {
+    "s_per_sample": 0.07072478400004911,
+    "speedup_vs_solver": 1.1204496856505244
+   },
+   "cpu_grid128_batch16": {
+    "s_per_sample": 0.10043024703128367,
+    "speedup_vs_solver": 0.789040795407704
+   },
+   "cpu_grid128_batch64": {
+    "s_per_sample": 0.12715332013280545,
+    "speedup_vs_solver": 0.6232126846376502
+   }
+  },
+  "deeponet": {
+   "cuda_grid64_batch1": {
+    "s_per_sample": 0.001626909499464091,
+    "speedup_vs_solver": 9.109742124443516
+   },
+   "cuda_grid64_batch16": {
+    "s_per_sample": 0.00011201203119526326,
+    "speedup_vs_solver": 132.3136973928215
+   },
+   "cuda_grid64_batch64": {
+    "s_per_sample": 4.049464844513295e-05,
+    "speedup_vs_solver": 365.9922130205984
+   },
+   "cuda_grid128_batch1": {
+    "s_per_sample": 0.0034060605003105593,
+    "speedup_vs_solver": 23.26545931680631
+   },
+   "cuda_grid128_batch16": {
+    "s_per_sample": 0.0001938646562393842,
+    "speedup_vs_solver": 408.7571377771215
+   },
+   "cuda_grid128_batch64": {
+    "s_per_sample": 5.825567187400793e-05,
+    "speedup_vs_solver": 1360.2720465045834
+   },
+   "cpu_grid64_batch1": {
+    "s_per_sample": 0.017457956499129068,
+    "speedup_vs_solver": 0.8489381904843624
+   },
+   "cpu_grid64_batch16": {
+    "s_per_sample": 0.0013829599687937844,
+    "speedup_vs_solver": 10.716670282836862
+   },
+   "cpu_grid64_batch64": {
+    "s_per_sample": 0.0006462085625003056,
+    "speedup_vs_solver": 22.934895728680996
+   },
+   "cpu_grid128_batch1": {
+    "s_per_sample": 0.08635161149959458,
+    "speedup_vs_solver": 0.9176848077806667
+   },
+   "cpu_grid128_batch16": {
+    "s_per_sample": 0.008598878468774274,
+    "speedup_vs_solver": 9.215569482499273
+   },
+   "cpu_grid128_batch64": {
+    "s_per_sample": 0.0022449800156181254,
+    "speedup_vs_solver": 35.298114659937234
+   }
+  }
+ }
+}
